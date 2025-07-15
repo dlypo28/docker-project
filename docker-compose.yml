@@ -1,0 +1,52 @@
+# docker-compose.yml
+
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker-project
+    container_name: docker-project
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+    networks:
+      - laravel
+
+  web:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - laravel
+
+  db:
+    image: mysql:8
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel
+
+volumes:
+  dbdata:
+
+networks:
+  laravel:
+    driver: bridge
